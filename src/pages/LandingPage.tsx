@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import ncmpLogo from "@/assets/ncmp-logo.png";
-import parliamentHero from "@/assets/parliament-hero.png";
+import parliamentHero from "@/assets/hero.jpg";
 import mpPlaceholder from "@/assets/mp-placeholder.png";
 import { Shield, Users, FolderKanban, BarChart3, ClipboardList, Heart, MapPin, Phone, Mail, MessageCircle, ChevronRight, Star, CheckCircle } from "lucide-react";
 
