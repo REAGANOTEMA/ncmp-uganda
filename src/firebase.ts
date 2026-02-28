@@ -1,6 +1,6 @@
 // src/firebase.ts
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getAuth, Auth } from "firebase/auth";
+import { getAuth, connectAuthEmulator, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
 import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
@@ -37,6 +37,11 @@ const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebas
 export const auth: Auth = getAuth(app);
 export const db: Firestore = getFirestore(app);
 export const storage: FirebaseStorage = getStorage(app);
+
+// ✅ Enable Firebase Auth Emulator in development
+if (import.meta.env.DEV) {
+  connectAuthEmulator(auth, "http://localhost:9099"); // use the emulator locally
+}
 
 // Analytics (async safe)
 export const analytics: Promise<Analytics | null> = isSupported().then(
