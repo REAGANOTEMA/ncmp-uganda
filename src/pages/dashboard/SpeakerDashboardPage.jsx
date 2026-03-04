@@ -5,7 +5,7 @@ import {
   BarChart2, Activity, CheckCircle, Clock, AlertCircle, Star
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import speakerPic from "@/assets/speaker-placeholder.png";
+import speakerPic from "@/assets/speaker-placeholder.jpg";
 
 // Sample Data
 const RECENT_VOTES = [
