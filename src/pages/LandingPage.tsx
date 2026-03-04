@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import ncmpLogo from "@/assets/ncmp-logo.png";
 import parliamentHero from "@/assets/hero.jpg";
 import mpPlaceholder from "@/assets/mp-placeholder.png";
-import { Shield, Users, FolderKanban, BarChart3, ClipboardList, Heart, MapPin, Phone, Mail, MessageCircle, ChevronRight, Star, CheckCircle } from "lucide-react";
+import { Shield, Users, FolderKanban, BarChart3, ClipboardList, Heart, Star, ChevronRight, MessageCircle, Mail } from "lucide-react";
 
 const FEATURES = [
   { icon: ClipboardList, title: "Citizen Request Management", desc: "Receive, track, and resolve citizen requests with full case history and priority management." },
@@ -56,7 +56,7 @@ export default function LandingPage() {
               <span style={{ color: "hsl(var(--secondary))" }}>Management Platform</span>
             </h1>
             <p className="text-primary-foreground/70 text-xl leading-relaxed mb-10 max-w-2xl">
-              Empowering Uganda's 529 Members of Parliament to deliver transparent, accountable, and efficient service to 45 million citizens across 290+ constituencies.
+              Empowering Uganda's 529 Members of Parliament to deliver transparent, accountable, and efficient service to 46 million citizens across 290+ constituencies in 2026.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link to="/login"
@@ -72,16 +72,17 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-        {/* Stats bar */}
+
+        {/* Stats */}
         <div className="relative z-10 border-t" style={{ borderColor: "hsl(var(--primary-light))", background: "hsl(var(--primary-light))" }}>
-          <div className="max-w-7xl mx-auto px-6 py-5 grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="max-w-7xl mx-auto px-6 py-5 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
               { label: "Constituencies", value: "290+" },
               { label: "Active MPs", value: "529" },
-              { label: "Citizens Served", value: "45M+" },
+              { label: "Citizens Served", value: "46M+" },
               { label: "Districts", value: "146" },
             ].map(s => (
-              <div key={s.label} className="text-center">
+              <div key={s.label}>
                 <div className="text-2xl font-bold font-display" style={{ color: "hsl(var(--secondary))" }}>{s.value}</div>
                 <div className="text-xs text-primary-foreground/60 mt-1">{s.label}</div>
               </div>
@@ -97,7 +98,7 @@ export default function LandingPage() {
             <Star size={12} /> Enterprise Government Platform
           </div>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">Complete Constituency Management</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">Everything an MP and their office needs to serve constituents efficiently and transparently.</p>
+          <p className="text-muted-foreground max-w-xl mx-auto">Everything an MP and their office needs to serve constituents efficiently and transparently in 2026.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {FEATURES.map(f => (
@@ -113,11 +114,11 @@ export default function LandingPage() {
       </section>
 
       {/* MP Profiles Preview */}
-      <section id="constituencies" className="py-20" style={{ background: "hsl(var(--muted))" }}>
+      <section id="constituencies" className="py-20 bg-muted">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-14">
             <h2 className="font-display text-3xl font-bold text-foreground mb-4">Professional MP Profiles</h2>
-            <p className="text-muted-foreground">Complete profiles for every Member of Parliament in Uganda</p>
+            <p className="text-muted-foreground">Complete profiles for every Member of Parliament in Uganda in 2026</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -146,7 +147,7 @@ export default function LandingPage() {
       <section id="about" className="py-20 max-w-7xl mx-auto px-6 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="font-display text-3xl font-bold text-foreground mb-4">Ready to Transform Constituency Management?</h2>
-          <p className="text-muted-foreground mb-8">Join Uganda's national digital governance platform and deliver better services to your constituents.</p>
+          <p className="text-muted-foreground mb-8">Join Uganda's national digital governance platform and deliver better services to your constituents in 2026.</p>
           <Link to="/login"
             className="inline-flex items-center gap-2 px-10 py-4 rounded-xl font-semibold text-sm transition-all hover:opacity-90"
             style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>
@@ -155,36 +156,79 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t py-10" style={{ background: "hsl(var(--primary))", borderColor: "hsl(var(--primary-light))" }}>
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <img src={ncmpLogo} alt="NCMP" className="w-10 h-10 rounded-full object-cover" />
-              <div>
-                <div className="font-bold" style={{ color: "hsl(var(--secondary))" }}>NCMP Uganda</div>
-                <div className="text-xs text-primary-foreground/50">National Constituency Management Platform</div>
-              </div>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-primary-foreground/60">© 2025 Republic of Uganda. All rights reserved.</p>
-              <p className="text-xs text-primary-foreground/40 mt-1">
-                Built by <strong className="text-secondary">Reagan Otema</strong> — Enterprise Government Solutions
-              </p>
-            </div>
-            <div className="flex gap-4">
-              <a href="https://wa.me/+256700000000" target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-xs text-primary-foreground/60 hover:text-secondary transition-colors">
-                <MessageCircle size={14} /> WhatsApp
-              </a>
-              <a href="mailto:reaganotemas@gmail.com"
-                className="flex items-center gap-2 text-xs text-primary-foreground/60 hover:text-secondary transition-colors">
-                <Mail size={14} /> reaganotemas@gmail.com
-              </a>
-            </div>
-          </div>
+     {/* Footer */}
+<footer className="border-t pt-16" style={{ background: "hsl(var(--primary))", borderColor: "hsl(var(--primary-light))" }}>
+  {/* Footer Header - Uganda Flag + National Bird */}
+  <div className="flex justify-center mb-10">
+    <div className="relative w-36 h-20">
+      <div className="absolute inset-0 bg-red-600"></div>
+      <div className="absolute top-1/3 inset-x-0 h-1/3 bg-yellow-400"></div>
+      <div className="absolute bottom-0 inset-x-0 h-1/3 bg-black"></div>
+      {/* National Bird (Grey Crowned Crane) in the center */}
+      <img src="/assets/uganda-bird.png" alt="Grey Crowned Crane" className="absolute inset-0 w-full h-full object-contain p-2" />
+    </div>
+  </div>
+
+  <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
+    {/* Logo & About */}
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <img src={ncmpLogo} alt="NCMP" className="w-12 h-12 rounded-full object-cover" />
+        <div>
+          <div className="font-bold text-lg" style={{ color: "hsl(var(--secondary))" }}>NCMP Uganda</div>
+          <div className="text-xs text-primary-foreground/50">National Constituency Management Platform</div>
         </div>
-      </footer>
+      </div>
+      <p className="text-xs text-primary-foreground/60">
+        Empowering Members of Parliament to serve 46M+ citizens transparently and efficiently across 290+ constituencies.
+      </p>
+      <div className="flex flex-wrap gap-3 mt-2">
+        <a href="https://facebook.com/NCMPUganda" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/60 hover:text-secondary transition-colors">Facebook</a>
+        <a href="https://twitter.com/NCMPUganda" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/60 hover:text-secondary transition-colors">Twitter</a>
+        <a href="https://linkedin.com/company/ncmp-uganda" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/60 hover:text-secondary transition-colors">LinkedIn</a>
+        <a href="https://youtube.com/@NCMPUganda" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/60 hover:text-secondary transition-colors">YouTube</a>
+      </div>
+    </div>
+
+    {/* Quick Links */}
+    <div className="flex flex-col gap-3">
+      <h3 className="font-semibold text-foreground text-sm mb-2">Quick Links</h3>
+      <ul className="flex flex-col gap-1 text-xs text-primary-foreground/60">
+        <li><a href="#features" className="hover:text-secondary transition-colors">Features</a></li>
+        <li><a href="#constituencies" className="hover:text-secondary transition-colors">Constituencies</a></li>
+        <li><a href="#about" className="hover:text-secondary transition-colors">About NCMP</a></li>
+        <li><a href="/reports" className="hover:text-secondary transition-colors">Reports & Analytics</a></li>
+      </ul>
+    </div>
+
+    {/* Official & Contact */}
+    <div className="flex flex-col gap-3">
+      <h3 className="font-semibold text-foreground text-sm mb-2">Official & Contact</h3>
+      <ul className="flex flex-col gap-1 text-xs text-primary-foreground/60">
+        <li><a href="https://www.parliament.go.ug" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">Parliament of Uganda</a></li>
+        <li><a href="https://www.gou.go.ug" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">Government of Uganda</a></li>
+        <li><a href="mailto:reaganotemas@gmail.com" className="hover:text-secondary transition-colors">reaganotemas@gmail.com</a></li>
+        <li><a href="tel:+256772514889" className="hover:text-secondary transition-colors">+256 772 514 889</a></li>
+        <li><a href="https://wa.me/+256772514889" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">WhatsApp</a></li>
+      </ul>
+    </div>
+
+    {/* Bottom copyright */}
+    <div className="col-span-full mt-10 border-t pt-4 border-primary-light/30 text-center text-xs text-primary-foreground/50">
+      <p>© 2026 Republic of Uganda. All rights reserved.</p>
+      <p className="mt-1 text-xs text-primary-foreground/50">
+  Designed & Built by{" "}
+  <strong className="text-secondary">
+    <a href="mailto:reaganotemas@gmail.com" className="hover:underline">Reagan Otema</a>
+  </strong>{" "}
+  — Enterprise Government Solutions |{" "}
+  <a href="https://wa.me/+256772514889" target="_blank" rel="noopener noreferrer" className="hover:underline">
+    WhatsApp
+  </a>
+</p>
+    </div>
+  </div>
+</footer>
     </div>
   );
 }

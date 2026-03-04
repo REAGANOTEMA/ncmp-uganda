@@ -1,6 +1,6 @@
 import { useState } from "react";
 import mpPlaceholder from "@/assets/mp-placeholder.png";
-import { SAMPLE_MP_PROFILES, UGANDAN_CONSTITUENCIES, UGANDAN_PARTIES, type MPProfile } from "@/data/ugandaData";
+import { SAMPLE_MP_PROFILES, UGANDAN_CONSTITUENCIES, UGANDAN_PARTIES, UGANDAN_DISTRICTS, type MPProfile } from "@/data/ugandaData";
 import { Edit, Mail, Twitter, Globe, MapPin, Calendar, Users, Star, ExternalLink, Save, X } from "lucide-react";
 
 export default function MPProfilePage() {
@@ -14,7 +14,7 @@ export default function MPProfilePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6 py-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -31,14 +31,11 @@ export default function MPProfilePage() {
       </div>
 
       {/* Profile Banner */}
-      <div className="rounded-2xl overflow-hidden shadow-gov-lg" style={{ background: "hsl(var(--primary))" }}>
-        <div className="h-32 relative" style={{ background: "linear-gradient(135deg, hsl(220,65%,12%) 0%, hsl(220,55%,28%) 50%, hsl(42,80%,35%) 100%)" }}>
-          <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjMiPjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjMiLz48L2c+PC9zdmc+')]" />
-        </div>
-        <div className="px-8 pb-8 -mt-16 flex items-end gap-6">
+      <div className="rounded-2xl overflow-hidden shadow-gov-lg relative" style={{ background: "hsl(var(--primary))" }}>
+        <div className="h-32 relative" style={{ background: "linear-gradient(135deg, hsl(220,65%,12%) 0%, hsl(220,55%,28%) 50%, hsl(42,80%,35%) 100%)" }} />
+        <div className="px-8 pb-8 -mt-16 flex items-end gap-6 relative z-10">
           <div className="relative">
-            <img src={mpPlaceholder} alt={profile.name}
-              className="w-28 h-28 rounded-xl object-cover border-4 shadow-gov-md"
+            <img src={mpPlaceholder} alt={profile.name} className="w-28 h-28 rounded-xl object-cover border-4 shadow-gov-md"
               style={{ borderColor: "hsl(var(--secondary))" }} />
             <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${profile.status === "active" ? "bg-green-500" : "bg-gray-400"}`} />
           </div>
@@ -50,13 +47,13 @@ export default function MPProfilePage() {
               </span>
             </div>
             <h2 className="font-display text-2xl font-bold text-primary-foreground">{profile.name}</h2>
-            <p className="text-primary-foreground/70 text-sm">{profile.constituency} Constituency</p>
+            <p className="text-primary-foreground/70 text-sm">{profile.constituency} Constituency, {profile.district}</p>
           </div>
         </div>
       </div>
 
+      {/* Edit Mode */}
       {editing ? (
-        /* Edit Form */
         <div className="gov-card p-6 space-y-5">
           <h3 className="font-semibold text-foreground text-lg">Edit Profile Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -76,6 +73,7 @@ export default function MPProfilePage() {
                   className="w-full h-10 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
             ))}
+
             <div>
               <label className="text-sm font-medium text-foreground mb-1.5 block">Party</label>
               <select value={form.party} onChange={e => setForm({ ...form, party: e.target.value })}
@@ -83,6 +81,7 @@ export default function MPProfilePage() {
                 {UGANDAN_PARTIES.map(p => <option key={p}>{p}</option>)}
               </select>
             </div>
+
             <div>
               <label className="text-sm font-medium text-foreground mb-1.5 block">Constituency</label>
               <select value={form.constituency} onChange={e => setForm({ ...form, constituency: e.target.value })}
@@ -90,13 +89,23 @@ export default function MPProfilePage() {
                 {UGANDAN_CONSTITUENCIES.map(c => <option key={c.id}>{c.name}</option>)}
               </select>
             </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">District</label>
+              <select value={form.district} onChange={e => setForm({ ...form, district: e.target.value })}
+                className="w-full h-10 px-3 rounded-lg border bg-background text-sm focus:outline-none">
+                {UGANDAN_DISTRICTS.map(d => <option key={d}>{d}</option>)}
+              </select>
+            </div>
           </div>
+
           <div>
             <label className="text-sm font-medium text-foreground mb-1.5 block">Biography</label>
             <textarea value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })}
               className="w-full px-3 py-2.5 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
               rows={4} />
           </div>
+
           <div className="flex gap-3">
             <button onClick={() => setEditing(false)} className="flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium hover:bg-muted transition-colors">
               <X size={15} /> Cancel
@@ -141,9 +150,9 @@ export default function MPProfilePage() {
               <h3 className="font-semibold text-foreground mb-4">Performance Overview</h3>
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { label: "Total Requests", value: "1,284", icon: Users },
-                  { label: "Active Projects", value: "24", icon: Star },
-                  { label: "Resolution Rate", value: "85%", icon: Star },
+                  { label: "Total Requests", value: profile.totalRequests, icon: Users },
+                  { label: "Active Projects", value: profile.activeProjects, icon: Star },
+                  { label: "Resolution Rate", value: profile.resolutionRate, icon: Star },
                 ].map(s => (
                   <div key={s.label} className="rounded-lg p-3 text-center" style={{ background: "hsl(var(--muted))" }}>
                     <div className="text-xl font-bold font-display text-primary">{s.value}</div>
@@ -166,10 +175,10 @@ export default function MPProfilePage() {
                   </a>
                 )}
                 {profile.twitter && (
-                  <div className="flex items-center gap-3 text-sm">
+                  <a href={`https://twitter.com/${profile.twitter}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:opacity-80 transition-opacity">
                     <div className="p-2 rounded-lg bg-muted"><Twitter size={14} className="text-primary" /></div>
-                    <span className="text-muted-foreground">{profile.twitter}</span>
-                  </div>
+                    <span className="text-muted-foreground">@{profile.twitter}</span>
+                  </a>
                 )}
                 {profile.website && (
                   <a href={profile.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:opacity-80 transition-opacity">
@@ -177,6 +186,12 @@ export default function MPProfilePage() {
                     <span className="text-muted-foreground">{profile.website}</span>
                     <ExternalLink size={10} className="text-muted-foreground ml-auto" />
                   </a>
+                )}
+                {profile.location && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="p-2 rounded-lg bg-muted"><MapPin size={14} className="text-primary" /></div>
+                    <span className="text-muted-foreground">{profile.location}</span>
+                  </div>
                 )}
               </div>
             </div>
