@@ -1,21 +1,15 @@
+import { useAuth } from "@/contexts/AuthContext";
 import SuperAdminDashboard from "./dashboard/superadmindashboardpage";
 import SpeakerDashboard from "./dashboard/SpeakerDashboardPage";
 import MPDashboard from "./dashboard/MPDashboardPage";
 import StaffDashboard from "./dashboard/StaffDashboardPage";
 import CitizenDashboard from "./dashboard/CitizenDashboardPage";
 
-/**
- * DashboardPage
- * Renders the appropriate dashboard based on the logged-in user's role.
- * Other pages in /pages (like Constituency, MPProfiles, Requests, etc.) remain unaffected.
- */
 export default function DashboardPage() {
   const { user } = useAuth();
 
-  // Show nothing if user is not yet loaded
-  if (!user) return null;
+  if (!user) return <p className="p-4 text-center">Loading dashboard...</p>;
 
-  // Map roles to dashboard components
   const dashboardMap = {
     super_admin: SuperAdminDashboard,
     speaker: SpeakerDashboard,
@@ -25,8 +19,10 @@ export default function DashboardPage() {
     citizen: CitizenDashboard,
   };
 
-  // Select the dashboard component based on user.role
-  const DashboardComponent = dashboardMap[user.role] || SuperAdminDashboard;
+  const DashboardComponent = dashboardMap[user.role];
+
+  if (!DashboardComponent)
+    return <p className="p-4 text-center">No dashboard available for your role.</p>;
 
   return <DashboardComponent />;
 }
