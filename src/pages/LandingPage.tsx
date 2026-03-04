@@ -156,26 +156,22 @@ export default function LandingPage() {
         </div>
       </section>
 
-     {/* Footer */}
-<footer className="border-t pt-16" style={{ background: "hsl(var(--primary))", borderColor: "hsl(var(--primary-light))" }}>
-  {/* Footer Header - Uganda Flag + National Bird */}
-  <div className="flex justify-center mb-10">
-    <div className="relative w-36 h-20">
-      <div className="absolute inset-0 bg-red-600"></div>
-      <div className="absolute top-1/3 inset-x-0 h-1/3 bg-yellow-400"></div>
-      <div className="absolute bottom-0 inset-x-0 h-1/3 bg-black"></div>
-      {/* National Bird (Grey Crowned Crane) in the center */}
-      <img src="/assets/uganda-bird.png" alt="Grey Crowned Crane" className="absolute inset-0 w-full h-full object-contain p-2" />
-    </div>
+   {/* Footer */}
+<footer className="relative border-t bg-primary text-primary-foreground">
+  {/* Thin Ugandan Flag Line on top */}
+  <div className="absolute -top-2 left-0 w-full h-2 flex">
+    <div className="flex-1 bg-red-600" />
+    <div className="flex-1 bg-yellow-400" />
+    <div className="flex-1 bg-black" />
   </div>
 
-  <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
+  <div className="max-w-7xl mx-auto px-6 pt-10 grid grid-cols-1 md:grid-cols-3 gap-10">
     {/* Logo & About */}
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         <img src={ncmpLogo} alt="NCMP" className="w-12 h-12 rounded-full object-cover" />
         <div>
-          <div className="font-bold text-lg" style={{ color: "hsl(var(--secondary))" }}>NCMP Uganda</div>
+          <div className="font-bold text-lg text-secondary">NCMP Uganda</div>
           <div className="text-xs text-primary-foreground/50">National Constituency Management Platform</div>
         </div>
       </div>
@@ -183,16 +179,15 @@ export default function LandingPage() {
         Empowering Members of Parliament to serve 46M+ citizens transparently and efficiently across 290+ constituencies.
       </p>
       <div className="flex flex-wrap gap-3 mt-2">
-        <a href="https://facebook.com/NCMPUganda" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/60 hover:text-secondary transition-colors">Facebook</a>
-        <a href="https://twitter.com/NCMPUganda" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/60 hover:text-secondary transition-colors">Twitter</a>
-        <a href="https://linkedin.com/company/ncmp-uganda" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/60 hover:text-secondary transition-colors">LinkedIn</a>
-        <a href="https://youtube.com/@NCMPUganda" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/60 hover:text-secondary transition-colors">YouTube</a>
+        {["Facebook", "Twitter", "LinkedIn", "YouTube"].map(site => (
+          <a key={site} href="#" className="text-primary-foreground/60 hover:text-secondary transition-colors">{site}</a>
+        ))}
       </div>
     </div>
 
     {/* Quick Links */}
     <div className="flex flex-col gap-3">
-      <h3 className="font-semibold text-foreground text-sm mb-2">Quick Links</h3>
+      <h3 className="font-semibold text-sm text-foreground mb-2">Quick Links</h3>
       <ul className="flex flex-col gap-1 text-xs text-primary-foreground/60">
         <li><a href="#features" className="hover:text-secondary transition-colors">Features</a></li>
         <li><a href="#constituencies" className="hover:text-secondary transition-colors">Constituencies</a></li>
@@ -203,7 +198,7 @@ export default function LandingPage() {
 
     {/* Official & Contact */}
     <div className="flex flex-col gap-3">
-      <h3 className="font-semibold text-foreground text-sm mb-2">Official & Contact</h3>
+      <h3 className="font-semibold text-sm text-foreground mb-2">Official & Contact</h3>
       <ul className="flex flex-col gap-1 text-xs text-primary-foreground/60">
         <li><a href="https://www.parliament.go.ug" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">Parliament of Uganda</a></li>
         <li><a href="https://www.gou.go.ug" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">Government of Uganda</a></li>
@@ -216,19 +211,14 @@ export default function LandingPage() {
     {/* Bottom copyright */}
     <div className="col-span-full mt-10 border-t pt-4 border-primary-light/30 text-center text-xs text-primary-foreground/50">
       <p>© 2026 Republic of Uganda. All rights reserved.</p>
-      <p className="mt-1 text-xs text-primary-foreground/50">
-  Designed & Built by{" "}
-  <strong className="text-secondary">
-    <a href="mailto:reaganotemas@gmail.com" className="hover:underline">Reagan Otema</a>
-  </strong>{" "}
-  — Enterprise Government Solutions |{" "}
-  <a href="https://wa.me/+256772514889" target="_blank" rel="noopener noreferrer" className="hover:underline">
-    WhatsApp
-  </a>
-</p>
+      <p className="mt-1">
+        Designed & Built by{" "}
+        <strong className="text-secondary">
+          <a href="mailto:reaganotemas@gmail.com" className="hover:underline">Reagan Otema</a>
+        </strong>{" "}
+        — Enterprise Government Solutions |{" "}
+        <a href="https://wa.me/+256772514889" target="_blank" rel="noopener noreferrer" className="hover:underline">WhatsApp</a>
+      </p>
     </div>
   </div>
 </footer>
-    </div>
-  );
-}
