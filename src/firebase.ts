@@ -1,51 +1,56 @@
 // src/firebase.ts
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth, connectAuthEmulator, Auth } from "firebase/auth";
-import { getFirestore, Firestore } from "firebase/firestore";
+import { getFirestore, connectFirestoreEmulator, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
 import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
 
-// TypeScript support for Vite env variables
-interface ImportMetaEnv {
-  readonly VITE_FIREBASE_API_KEY: string;
-  readonly VITE_FIREBASE_AUTH_DOMAIN: string;
-  readonly VITE_FIREBASE_PROJECT_ID: string;
-  readonly VITE_FIREBASE_STORAGE_BUCKET: string;
-  readonly VITE_FIREBASE_MESSAGING_SENDER_ID: string;
-  readonly VITE_FIREBASE_APP_ID: string;
-  readonly VITE_FIREBASE_MEASUREMENT_ID: string;
-}
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}
-
-// Firebase configuration from Vite env
+// 🔐 Firebase configuration from Vite environment variables
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "",
 };
 
-// Prevent multiple initializations
-const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+// 🛑 Prevent multiple Firebase initializations (important for Vite HMR)
+const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-// Firebase services
+// 🔥 Core Services
 export const auth: Auth = getAuth(app);
 export const db: Firestore = getFirestore(app);
 export const storage: FirebaseStorage = getStorage(app);
 
-// ✅ Enable Firebase Auth Emulator in development
+// ===============================
+// 🧪 EMULATORS (Development Only)
+// ===============================
 if (import.meta.env.DEV) {
-  connectAuthEmulator(auth, "http://localhost:9099"); // use the emulator locally
+  // Prevent emulator reconnection errors
+  if (!auth.config.emulator) {
+    connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+  }
+
+  try {
+    connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  } catch {
+    // ignore if already connected
+  }
 }
 
-// Analytics (async safe)
-export const analytics: Promise<Analytics | null> = isSupported().then(
-  (supported) => (supported ? getAnalytics(app) : null)
-);
+// ===============================
+// 📊 Analytics (Production Only)
+// ===============================
+export let analytics: Analytics | null = null;
+
+if (import.meta.env.PROD) {
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(app);
+    }
+  });
+}
 
 export default app;

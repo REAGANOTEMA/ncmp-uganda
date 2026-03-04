@@ -1,5 +1,4 @@
-import { useAuth } from "@/contexts/AuthContext";
-import SuperAdminDashboard from "./dashboard/SuperAdminDashboardPage";
+import SuperAdminDashboard from "./dashboard/superadmindashboardpage";
 import SpeakerDashboard from "./dashboard/SpeakerDashboardPage";
 import MPDashboard from "./dashboard/MPDashboardPage";
 import StaffDashboard from "./dashboard/StaffDashboardPage";
