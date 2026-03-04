@@ -5,7 +5,7 @@ import {
   BarChart2, Activity, CheckCircle, Clock, AlertCircle, Star
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import superAdminPic from "@/assets/superadmin-placeholder.png"; // placeholder profile image
+import superAdminPic from "@/assets/super-admin.jpg"; // placeholder profile image
 
 // Sample data
 const RECENT_CONSTITUENCIES = [
