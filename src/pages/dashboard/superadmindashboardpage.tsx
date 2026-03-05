@@ -40,7 +40,7 @@ const STATUS_COLORS = {
 
 export default function SuperAdminDashboardPage() {
   const [profile, setProfile] = useState({
-    name: "Hon. John K. Doe",
+    name: "H.E. Yoweri Kaguta Museveni",
     role: "Super Administrator",
     email: "superadmin@gov.ug",
     phone: "+256 700 000000",
