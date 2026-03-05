@@ -15,21 +15,27 @@ const DEMO_CREDS = [
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState(""); // email or NIN
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [role, setRole] = useState<"official" | "citizen">("official");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
+      // For citizens, use NIN as username
+      await login(identifier, password, role);
       navigate("/dashboard");
     } catch {
-      setError("Invalid email or password. Please try again.");
+      setError(
+        role === "citizen"
+          ? "Invalid NIN or password. Please try again."
+          : "Invalid email or password. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -69,12 +75,8 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="relative z-10 grid grid-cols-3 gap-4">
-          {[
-            { label: "Constituencies", value: "290+" },
-            { label: "Active MPs", value: "529" },
-            { label: "Citizens Served", value: "45M+" },
-          ].map((s) => (
+        <div className="relative z-10 grid grid-cols-3 gap-4 mt-10">
+          {[{ label: "Constituencies", value: "290+" }, { label: "Active MPs", value: "529" }, { label: "Citizens Served", value: "46M+" }].map((s) => (
             <div key={s.label} className="rounded-xl p-4" style={{ background: "hsl(var(--primary-light))" }}>
               <div className="text-2xl font-bold text-secondary">{s.value}</div>
               <div className="text-xs text-primary-foreground/60 mt-1">{s.label}</div>
@@ -112,18 +114,33 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleLogin} className="space-y-5">
+            {/* Role selector */}
+            <div className="flex items-center gap-4 mb-2">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="radio" checked={role === "official"} onChange={() => setRole("official")} className="accent-primary" />
+                Official / Staff
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="radio" checked={role === "citizen"} onChange={() => setRole("citizen")} className="accent-primary" />
+                Citizen (NIN)
+              </label>
+            </div>
+
             <div>
-              <label className="text-sm font-medium text-foreground mb-1.5 block">Official Email Address</label>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">
+                {role === "citizen" ? "National ID (NIN)" : "Official Email Address"}
+              </label>
               <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="name@parliament.go.ug"
+                type={role === "citizen" ? "text" : "email"}
+                value={identifier}
+                onChange={e => setIdentifier(e.target.value)}
+                placeholder={role === "citizen" ? "e.g. 1234567890123" : "name@parliament.go.ug"}
                 required
                 className="w-full h-11 px-4 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                 style={{ borderColor: "hsl(var(--border))" }}
               />
             </div>
+
             <div>
               <label className="text-sm font-medium text-foreground mb-1.5 block">Password</label>
               <div className="relative">
@@ -147,10 +164,7 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
               className="w-full h-11 rounded-lg font-semibold text-sm transition-all duration-200 disabled:opacity-60"
-              style={{
-                background: "hsl(var(--primary))",
-                color: "hsl(var(--primary-foreground))",
-              }}
+              style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}
             >
               {loading ? "Authenticating..." : "Sign In Securely"}
             </button>

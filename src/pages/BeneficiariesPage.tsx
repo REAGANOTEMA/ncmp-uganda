@@ -1,19 +1,20 @@
 import { useState } from "react";
-import { Search, Plus, Eye, Edit, Filter } from "lucide-react";
+import { Search, Plus, Eye, Edit } from "lucide-react";
 import { UGANDAN_CONSTITUENCIES } from "@/data/ugandaData";
 
+// Updated 2026 beneficiaries
 const BENEFICIARIES = [
-  { id: "BEN-001", name: "Grace Nakato", program: "Scholarship", constituency: "Kampala Central", amount: 2500000, status: "Approved", date: "2025-01-10" },
-  { id: "BEN-002", name: "Peter Ouma", program: "Medical Assistance", constituency: "Gulu City East", amount: 5000000, status: "Pending", date: "2025-01-09" },
-  { id: "BEN-003", name: "Sarah Atim", program: "Women Empowerment", constituency: "Soroti City West", amount: 1500000, status: "Approved", date: "2025-01-08" },
-  { id: "BEN-004", name: "John Wasswa", program: "Youth Program", constituency: "Mukono Municipal", amount: 800000, status: "Disbursed", date: "2025-01-07" },
-  { id: "BEN-005", name: "Mary Nansubuga", program: "Scholarship", constituency: "Kampala Central", amount: 3000000, status: "Approved", date: "2025-01-06" },
-  { id: "BEN-006", name: "Robert Tumwine", program: "Business Support", constituency: "Mbarara Central", amount: 4000000, status: "Rejected", date: "2025-01-05" },
-  { id: "BEN-007", name: "Alice Karungi", program: "Medical Assistance", constituency: "Hoima East", amount: 2000000, status: "Disbursed", date: "2025-01-04" },
-  { id: "BEN-008", name: "James Okello", program: "Youth Program", constituency: "Lira Central", amount: 1200000, status: "Pending", date: "2025-01-03" },
+  { id: "BEN-001", name: "Grace Nakato", program: "Scholarship", constituency: "Kampala Central", amount: 2750000, status: "Approved", date: "2026-01-10" },
+  { id: "BEN-002", name: "Peter Ouma", program: "Medical Assistance", constituency: "Gulu City East", amount: 5200000, status: "Pending", date: "2026-01-09" },
+  { id: "BEN-003", name: "Sarah Atim", program: "Women Empowerment", constituency: "Soroti City West", amount: 1650000, status: "Approved", date: "2026-01-08" },
+  { id: "BEN-004", name: "John Wasswa", program: "Youth Program", constituency: "Mukono Municipal", amount: 900000, status: "Disbursed", date: "2026-01-07" },
+  { id: "BEN-005", name: "Mary Nansubuga", program: "Scholarship", constituency: "Kampala Central", amount: 3200000, status: "Approved", date: "2026-01-06" },
+  { id: "BEN-006", name: "Robert Tumwine", program: "Business Support", constituency: "Mbarara Central", amount: 4200000, status: "Rejected", date: "2026-01-05" },
+  { id: "BEN-007", name: "Alice Karungi", program: "Medical Assistance", constituency: "Hoima East", amount: 2100000, status: "Disbursed", date: "2026-01-04" },
+  { id: "BEN-008", name: "James Okello", program: "Youth Program", constituency: "Lira Central", amount: 1250000, status: "Pending", date: "2026-01-03" },
 ];
 
-const programColors: Record<string, string> = {
+const programColors = {
   "Scholarship": "bg-blue-100 text-blue-800",
   "Medical Assistance": "bg-red-100 text-red-800",
   "Women Empowerment": "bg-pink-100 text-pink-800",
@@ -21,7 +22,7 @@ const programColors: Record<string, string> = {
   "Business Support": "bg-amber-100 text-amber-800",
 };
 
-const statusColors: Record<string, string> = {
+const statusColors = {
   Approved: "badge-progress",
   Pending: "badge-new",
   Disbursed: "badge-resolved",
@@ -40,20 +41,21 @@ export default function BeneficiariesPage() {
     (programFilter === "All" || b.program === programFilter)
   );
 
+  // Updated program stats for 2026
   const programStats = [
-    { name: "Scholarship Fund", total: 284, approved: 240, budget: "UGX 720M", icon: "🎓" },
-    { name: "Medical Assistance", total: 156, approved: 120, budget: "UGX 480M", icon: "🏥" },
-    { name: "Women Empowerment", total: 380, approved: 352, budget: "UGX 352M", icon: "👩‍💼" },
-    { name: "Youth Program", total: 520, approved: 480, budget: "UGX 384M", icon: "🌱" },
-    { name: "Business Support", total: 94, approved: 78, budget: "UGX 312M", icon: "💼" },
+    { name: "Scholarship Fund", total: 310, approved: 285, budget: "UGX 800M", icon: "🎓" },
+    { name: "Medical Assistance", total: 180, approved: 150, budget: "UGX 520M", icon: "🏥" },
+    { name: "Women Empowerment", total: 400, approved: 370, budget: "UGX 380M", icon: "👩‍💼" },
+    { name: "Youth Program", total: 550, approved: 500, budget: "UGX 410M", icon: "🌱" },
+    { name: "Business Support", total: 100, approved: 85, budget: "UGX 340M", icon: "💼" },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Beneficiary Programs</h1>
-          <p className="text-muted-foreground text-sm mt-1">Manage scholarships, medical assistance, and support programs</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Beneficiary Programs 2026</h1>
+          <p className="text-muted-foreground text-sm mt-1">Manage scholarships, medical assistance, women & youth programs</p>
         </div>
         <button onClick={() => setShowModal(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all"
@@ -100,8 +102,8 @@ export default function BeneficiariesPage() {
               </div>
             </div>
           ))}
-          <div className="gov-card p-5 border-dashed" style={{ borderStyle: "dashed" }}>
-            <button className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors py-8">
+          <div className="gov-card p-5 border-dashed flex items-center justify-center">
+            <button className="flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors py-8">
               <Plus size={24} />
               <span className="text-sm font-medium">Create New Program</span>
             </button>
@@ -123,19 +125,20 @@ export default function BeneficiariesPage() {
             </select>
           </div>
 
+          {/* Table */}
           <div className="gov-card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full gov-table">
                 <thead>
                   <tr>
-                    <th className="text-left">ID</th>
-                    <th className="text-left">Beneficiary</th>
-                    <th className="text-left">Program</th>
-                    <th className="text-left">Constituency</th>
-                    <th className="text-left">Amount</th>
-                    <th className="text-left">Status</th>
-                    <th className="text-left">Date</th>
-                    <th className="text-left">Actions</th>
+                    <th>ID</th>
+                    <th>Beneficiary</th>
+                    <th>Program</th>
+                    <th>Constituency</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -163,6 +166,7 @@ export default function BeneficiariesPage() {
         </>
       )}
 
+      {/* Add Beneficiary Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-card rounded-2xl shadow-gov-lg w-full max-w-lg p-6 animate-slide-up">
@@ -184,7 +188,7 @@ export default function BeneficiariesPage() {
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Constituency</label>
                   <select className="w-full h-10 px-3 rounded-lg border bg-background text-sm focus:outline-none">
-                    {UGANDAN_CONSTITUENCIES.slice(0, 15).map(c => <option key={c.id}>{c.name}</option>)}
+                    {UGANDAN_CONSTITUENCIES.slice(0, 20).map(c => <option key={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>

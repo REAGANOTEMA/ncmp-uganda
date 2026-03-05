@@ -139,18 +139,25 @@ export const UGANDAN_CONSTITUENCIES = [
 ];
 
 export const UGANDAN_PARTIES = [
+  "ANT - Alliance for National Transformation",
+  "DP - Democratic Party",
+  "FDC - Forum for Democratic Change",
+  "JEEMA - Justice Forum",
   "NRM - National Resistance Movement",
   "NUP - National Unity Platform",
-  "FDC - Forum for Democratic Change",
-  "DP - Democratic Party",
-  "UPC - Uganda People's Congress",
-  "JEEMA - Justice Forum",
-  "ANT - Alliance for National Transformation",
   "PPP - People's Progressive Party",
+  "UPC - Uganda People's Congress",
+  "UFA - Uganda Federal Alliance",
   "Independent",
 ];
 
-export const UGANDAN_REGIONS = ["Central", "Eastern", "Western", "Northern", "West Nile"];
+export const UGANDAN_REGIONS = [
+  "Central",
+  "Eastern",
+  "Northern",
+  "Western",
+  "West Nile"
+];
 
 export const UGANDAN_DISTRICTS = [
   "Abim", "Adjumani", "Agago", "Alebtong", "Amolatar", "Amudat", "Amuria", "Amuru",
@@ -170,28 +177,44 @@ export const UGANDAN_DISTRICTS = [
   "Namutumba", "Napak", "Nebbi", "Ngora", "Ntoroko", "Ntungamo", "Nwoya",
   "Obongi", "Omoro", "Otuke", "Oyam", "Pader", "Pakwach", "Pallisa", "Rakai",
   "Rubanda", "Rubirizi", "Rukiga", "Rukungiri", "Sembabule", "Serere", "Sheema",
-  "Sironko", "Soroti", "Terego", "Tororo", "Wakiso", "Yumbe", "Zombo",
+  "Sironko", "Soroti", "Terego", "Tororo", "Wakiso", "Yumbe", "Zombo"
 ];
+// =========================
+// User roles in the system
+// =========================
+export type UserRole = 
+  | "super_admin"   // Full access
+  | "mp"            // Member of Parliament
+  | "staff"         // Parliamentary staff
+  | "data_entry"    // Can enter constituency data
+  | "citizen"       // General user
+  | "auditor";      // Read-only, can audit data
 
-export type UserRole = "super_admin" | "mp" | "staff" | "data_entry" | "citizen" | "auditor";
+// =========================
+// MP status enumeration
+// =========================
+export type MPStatus = "active" | "inactive";
 
+// =========================
+// Profile of a Member of Parliament
+// =========================
 export interface MPProfile {
-  id: string;
-  name: string;
-  party: string;
-  constituency: string;
-  district: string;
-  region: string;
-  termStart: string;
-  termEnd: string;
-  bio: string;
-  email?: string;
-  phone?: string;
-  twitter?: string;
-  facebook?: string;
-  website?: string;
-  photo?: string;
-  status: "active" | "inactive";
+  id: string; // Unique identifier, e.g., "mp-001"
+  name: string; // Full name
+  party: typeof UGANDAN_PARTIES[number]; // Must match one of the official parties
+  constituency: string; // Constituency name
+  district: typeof UGANDAN_DISTRICTS[number]; // Must match official district
+  region: typeof UGANDAN_REGIONS[number]; // Must match official region
+  termStart: Date; // Term start date
+  termEnd: Date;   // Term end date
+  bio: string;     // Short biography
+  email?: string;  // Official email
+  phone?: string;  // Contact number
+  twitter?: string; // Twitter handle
+  facebook?: string; // Facebook profile/page
+  website?: string;  // Personal or official website
+  photo?: string;    // URL to profile photo
+  status: MPStatus;  // Active or inactive
 }
 
 export const SAMPLE_MP_PROFILES: MPProfile[] = [
@@ -202,8 +225,8 @@ export const SAMPLE_MP_PROFILES: MPProfile[] = [
     constituency: "Kampala Central",
     district: "Kampala",
     region: "Central",
-    termStart: "2021-05-20",
-    termEnd: "2026-05-19",
+    termStart: new Date("2021-05-20"),
+    termEnd: new Date("2026-05-19"),
     bio: "Hon. Muhammad Nsereko has been a dedicated representative of Kampala Central constituency since 2011. He has championed urban development, youth empowerment, and digital innovation in his constituency.",
     email: "nsereko@parliament.go.ug",
     twitter: "@MuhammadNsereko",
@@ -217,8 +240,8 @@ export const SAMPLE_MP_PROFILES: MPProfile[] = [
     constituency: "Mukono Municipal",
     district: "Mukono",
     region: "Central",
-    termStart: "2021-05-20",
-    termEnd: "2026-05-19",
+    termStart: new Date("2021-05-20"),
+    termEnd: new Date("2026-05-19"),
     bio: "Hon. Betty Nambooze is a trailblazing politician and women's rights advocate. She has served Mukono Municipal constituency with distinction, advocating for healthcare, education, and women's rights.",
     email: "nambooze@parliament.go.ug",
     twitter: "@BettyNambooze",
@@ -231,8 +254,8 @@ export const SAMPLE_MP_PROFILES: MPProfile[] = [
     constituency: "Omoro",
     district: "Omoro",
     region: "Northern",
-    termStart: "2021-05-20",
-    termEnd: "2026-05-19",
+    termStart: new Date("2021-05-20"),
+    termEnd: new Date("2026-05-19"),
     bio: "Hon. Norbert Mao is the President General of the Democratic Party and has served as Justice Minister. He has dedicated his political career to democracy, rule of law, and national reconciliation.",
     email: "mao@parliament.go.ug",
     twitter: "@NorbertMao",
