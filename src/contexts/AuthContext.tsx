@@ -26,6 +26,13 @@ interface AuthContextType {
     password: string,
     role: "official" | "citizen"
   ) => Promise<void>;
+  register: (data: {
+    full_name: string;
+    email?: string;
+    nin?: string;
+    password: string;
+    role: "official" | "citizen";
+  }) => Promise<void>;
   logout: () => void;
 }
 
@@ -44,11 +51,7 @@ Safe LocalStorage Reader
 const getStoredUser = (): User | null => {
   try {
     const storedUser = localStorage.getItem("user");
-
-    if (!storedUser || storedUser === "undefined") {
-      return null;
-    }
-
+    if (!storedUser || storedUser === "undefined") return null;
     return JSON.parse(storedUser);
   } catch (error) {
     console.error("Failed to parse stored user:", error);
@@ -79,23 +82,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const payload: any = { password };
 
       if (role === "citizen") {
-        payload.nin = identifier;
+        payload.identifier = identifier; // NIN used as identifier in backend
       } else {
-        payload.email = identifier;
+        payload.identifier = identifier; // email used as identifier
       }
 
       const res = await API.post("/auth/login", payload);
-
       const { token, user } = res.data;
 
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-
       setUser(user);
     } catch (error: any) {
       console.error("Login failed:", error);
       throw new Error(
         error?.response?.data?.message || "Login failed. Please try again."
+      );
+    }
+  };
+
+  /*
+  ================================
+  REGISTER
+  ================================
+  */
+  const register = async (data: {
+    full_name: string;
+    email?: string;
+    nin?: string;
+    password: string;
+    role: "official" | "citizen";
+  }) => {
+    try {
+      const res = await API.post("/auth/register", data);
+      const { token, user } = res.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
+    } catch (error: any) {
+      console.error("Registration failed:", error);
+      throw new Error(
+        error?.response?.data?.message || "Registration failed. Please try again."
       );
     }
   };
@@ -117,7 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ================================
   */
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -130,10 +158,6 @@ Custom Hook
 */
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };
