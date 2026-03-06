@@ -1,115 +1,105 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User"); // Make sure you have a Mongoose User model
-require("dotenv").config();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User'); // your MongoDB or SQL user model
+const { body, validationResult } = require('express-validator');
 
-/**
- * Helper: generate JWT token
- */
-const generateToken = (user) => {
-  return jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
-};
+// Regex for Uganda NIN (e.g., CM9801910356YD)
+const NIN_REGEX = /^[A-Z]{2}\d{10}[A-Z]{2}$/;
 
-/**
- * @desc Register a new user
- */
+// ===============================
+// REGISTER
+// ===============================
 exports.register = async (req, res) => {
   try {
     const { full_name, email, nin, password, role } = req.body;
 
-    // Validate required fields
-    if (!full_name || !password || (!email && !nin)) {
-      return res.status(400).json({ message: "Missing required fields." });
+    // Basic validation
+    if (!full_name || !password || !role) {
+      return res.status(400).json({ message: 'Full name, password, and role are required' });
     }
 
-    // Validate NIN if citizen
-    if (role === "citizen") {
-      const NIN_REGEX = /^[A-Z]{2}\d{10}[A-Z]{2}$/;
-      if (!NIN_REGEX.test(nin.toUpperCase())) {
-        return res.status(400).json({ message: "Invalid NIN format." });
+    // Citizen must provide valid NIN
+    if (role === 'citizen') {
+      if (!nin || !NIN_REGEX.test(nin)) {
+        return res.status(400).json({ message: 'Invalid NIN format. Example: CM9801910356YD' });
       }
-      const existingUser = await User.findOne({ nin: nin.toUpperCase() });
-      if (existingUser) {
-        return res.status(400).json({ message: "NIN already registered." });
+      const existingCitizen = await User.findOne({ nin });
+      if (existingCitizen) {
+        return res.status(409).json({ message: 'NIN already registered' });
       }
-    }
-
-    // Validate email for officials
-    if (role !== "citizen" && email) {
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return res.status(400).json({ message: "Email already registered." });
+    } else {
+      // Officials must provide valid email
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required for officials' });
+      }
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) {
+        return res.status(409).json({ message: 'Email already registered' });
       }
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user
-    const newUser = await User.create({
+    // Create user
+    const newUser = new User({
       full_name,
-      email,
-      nin: nin ? nin.toUpperCase() : undefined,
+      email: email || undefined,
+      nin: nin || undefined,
       role,
       password: hashedPassword,
     });
 
-    res.status(201).json({
-      message: "Registration successful",
-      user: {
-        id: newUser._id,
-        full_name: newUser.full_name,
-        email: newUser.email,
-        nin: newUser.nin,
-        role: newUser.role,
-      },
-    });
-  } catch (err) {
-    console.error("Registration error:", err);
-    res.status(500).json({ message: "Server error during registration." });
+    await newUser.save();
+
+    res.status(201).json({ message: 'Registration successful', user: newUser });
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ message: 'Registration failed', error: error.message });
   }
 };
 
-/**
- * @desc Login user
- */
+// ===============================
+// LOGIN
+// ===============================
 exports.login = async (req, res) => {
   try {
     const { email, nin, password } = req.body;
 
-    // Find user by email or NIN
+    // Identify user
     const user = email
       ? await User.findOne({ email })
-      : nin
-      ? await User.findOne({ nin: nin.toUpperCase() })
-      : null;
+      : await User.findOne({ nin });
 
-    if (!user) return res.status(400).json({ message: "Invalid credentials." });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-    // Check password
+    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials." });
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
 
-    // Generate token
-    const token = generateToken(user);
+    // Create JWT
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
-    res.status(200).json({
-      message: "Login successful",
-      token,
-      user: {
-        id: user._id,
-        full_name: user.full_name,
-        email: user.email,
-        nin: user.nin,
-        role: user.role,
-      },
-    });
-  } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ message: "Server error during login." });
+    // Remove password before sending user object
+    const userSafe = {
+      id: user._id,
+      full_name: user.full_name,
+      email: user.email,
+      nin: user.nin,
+      role: user.role,
+    };
+
+    res.status(200).json({ token, user: userSafe });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Login failed', error: error.message });
   }
 };

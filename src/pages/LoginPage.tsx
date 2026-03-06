@@ -5,15 +5,8 @@ import ncmpLogo from "@/assets/ncmp-logo.png";
 import parliamentHero from "@/assets/parliament-hero.png";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
 
-const DEMO_CREDS = [
-  { label: "Super Admin / President", email: "admin@ncmp.go.ug", role: "super_admin" },
-  { label: "Member of Parliament", email: "mp@ncmp.go.ug", role: "mp" },
-  { label: "Office Staff", email: "staff@ncmp.go.ug", role: "staff" },
-  { label: "Citizen", email: "citizen@ncmp.go.ug", role: "citizen" },
-];
-
 export default function AuthFlow() {
-  const { login, register } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -25,7 +18,7 @@ export default function AuthFlow() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const NIN_REGEX = /^[A-Z]{2}\d{10}[A-Z]{2}$/; // Uganda NIN format
+  const NIN_REGEX = /^[A-Z]{2}\d{10}[A-Z]{2}$/;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,61 +29,35 @@ export default function AuthFlow() {
       if (mode === "login") {
         await login(identifier, password, role);
       } else {
-        // Registration: validate NIN for citizens
-        if (role === "citizen" && !NIN_REGEX.test(identifier.toUpperCase())) {
+        // Registration validation
+        if (role === "citizen" && !NIN_REGEX.test(identifier)) {
           setError("Invalid NIN format. Example: CM9801910356YD");
           setLoading(false);
           return;
         }
 
-        await register({
-          full_name: fullName,
-          email: role === "official" ? identifier : undefined,
-          nin: role === "citizen" ? identifier.toUpperCase() : undefined,
-          password,
-          role,
+        const payload: any = { full_name: fullName, password, role };
+        if (role === "citizen") payload.nin = identifier;
+        else payload.email = identifier;
+
+        const res = await fetch(`${import.meta.env.VITE_API_BASE}/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Registration failed.");
 
         // Auto-login after registration
         await login(identifier, password, role);
       }
 
-      // Role-based redirects
+      // Redirect to dashboard
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-      const roleRedirects: Record<string, string> = {
-        super_admin: "/dashboard",
-        speaker: "/dashboard",
-        mp: "/dashboard",
-        staff: "/dashboard",
-        data_entry: "/dashboard",
-        citizen: "/dashboard",
-      };
-
-      navigate(roleRedirects[user.role?.toLowerCase()] || "/dashboard");
+      navigate("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Authentication failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const quickLogin = async (demoEmail: string) => {
-    setError("");
-    setLoading(true);
-    try {
-      await login(demoEmail, "demo1234", "official");
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      const roleRedirects: Record<string, string> = {
-        super_admin: "/dashboard",
-        speaker: "/dashboard",
-        mp: "/dashboard",
-        staff: "/dashboard",
-        data_entry: "/dashboard",
-        citizen: "/dashboard",
-      };
-      navigate(roleRedirects[user.role?.toLowerCase()] || "/dashboard");
-    } catch {
-      setError("Demo login failed.");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -125,7 +92,9 @@ export default function AuthFlow() {
             {mode === "login" ? "Sign in to NCMP" : "Register Your Account"}
           </h2>
           <p className="text-muted-foreground text-sm mb-8">
-            {mode === "login" ? "Enter your credentials to access your workspace." : "Create a new account to access your workspace."}
+            {mode === "login"
+              ? "Enter your credentials to access your workspace."
+              : "Create a new account to access your workspace."}
           </p>
 
           {error && (
@@ -208,23 +177,10 @@ export default function AuthFlow() {
             className="text-center text-xs text-muted-foreground mt-6 cursor-pointer hover:underline"
             onClick={() => setMode(mode === "login" ? "register" : "login")}
           >
-            {mode === "login" ? "Don't have an account? Register here" : "Already have an account? Sign In"}
+            {mode === "login"
+              ? "Don't have an account? Register here"
+              : "Already have an account? Sign In"}
           </p>
-
-          {mode === "login" && (
-            <div className="mt-8 grid grid-cols-2 gap-2">
-              {DEMO_CREDS.map(d => (
-                <button
-                  key={d.email}
-                  onClick={() => quickLogin(d.email)}
-                  className="text-left px-3 py-2.5 rounded-lg border text-xs transition-all hover:border-primary/40 hover:bg-muted"
-                >
-                  <div className="font-semibold text-foreground">{d.label}</div>
-                  <div className="text-muted-foreground mt-0.5">{d.email}</div>
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>

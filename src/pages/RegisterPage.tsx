@@ -1,18 +1,9 @@
-// src/pages/AuthFlow.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import API from "@/services/api";
 import ncmpLogo from "@/assets/ncmp-logo.png";
 import parliamentHero from "@/assets/parliament-hero.png";
-import { Eye, EyeOff, AlertCircle, Shield } from "lucide-react";
-
-const DEMO_CREDS = [
-  { label: "Super Admin / President", email: "admin@ncmp.go.ug", role: "super_admin" },
-  { label: "Member of Parliament", email: "mp@ncmp.go.ug", role: "mp" },
-  { label: "Office Staff", email: "staff@ncmp.go.ug", role: "staff" },
-  { label: "Citizen", email: "citizen@ncmp.go.ug", role: "citizen" },
-];
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 
 export default function AuthFlow() {
   const { login } = useAuth();
@@ -27,7 +18,6 @@ export default function AuthFlow() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Uganda NIN format: e.g., CM9801910356YD
   const NIN_REGEX = /^[A-Z]{2}\d{10}[A-Z]{2}$/;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,10 +27,9 @@ export default function AuthFlow() {
 
     try {
       if (mode === "login") {
-        // LOGIN
         await login(identifier, password, role);
       } else {
-        // REGISTER
+        // Registration validation
         if (role === "citizen" && !NIN_REGEX.test(identifier)) {
           setError("Invalid NIN format. Example: CM9801910356YD");
           setLoading(false);
@@ -51,43 +40,24 @@ export default function AuthFlow() {
         if (role === "citizen") payload.nin = identifier;
         else payload.email = identifier;
 
-        // Axios handles JSON automatically
-        const res = await API.post("/auth/register", payload);
+        const res = await fetch(`${import.meta.env.VITE_API_BASE}/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-        if (!res.data.user) throw new Error(res.data.message || "Registration failed");
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Registration failed.");
 
         // Auto-login after registration
         await login(identifier, password, role);
       }
 
-      // Redirect based on role
-      const roleRedirects: Record<string, string> = {
-        super_admin: "/dashboard",
-        speaker: "/dashboard",
-        mp: "/dashboard",
-        staff: "/dashboard",
-        data_entry: "/dashboard",
-        citizen: "/dashboard",
-      };
-
+      // Redirect to dashboard
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-      navigate(roleRedirects[user.role] || "/dashboard");
-    } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.message || err.message || "Operation failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const quickLogin = async (demoEmail: string) => {
-    setError("");
-    setLoading(true);
-    try {
-      await login(demoEmail, "demo1234");
       navigate("/dashboard");
-    } catch {
-      setError("Demo login failed.");
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -186,11 +156,8 @@ export default function AuthFlow() {
                   required
                   className="w-full h-11 px-4 pr-11 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
+                <button type="button" onClick={() => setShowPass(!showPass)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -214,22 +181,6 @@ export default function AuthFlow() {
               ? "Don't have an account? Register here"
               : "Already have an account? Sign In"}
           </p>
-
-          {/* Demo login */}
-          {mode === "login" && (
-            <div className="mt-8 grid grid-cols-2 gap-2">
-              {DEMO_CREDS.map((d) => (
-                <button
-                  key={d.email}
-                  onClick={() => quickLogin(d.email)}
-                  className="text-left px-3 py-2.5 rounded-lg border text-xs transition-all hover:border-primary/40 hover:bg-muted"
-                >
-                  <div className="font-semibold text-foreground">{d.label}</div>
-                  <div className="text-muted-foreground mt-0.5">{d.email}</div>
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>
