@@ -1,31 +1,16 @@
 const pool = require('../config/db');
 
-const generateReport = async (req, res) => {
-  const { type, startDate, endDate } = req.body;
-
+exports.getReports = async (req, res) => {
   try {
-    // Example: Requests by category
-    if (type === 'requests_by_category') {
-      const result = await pool.query(
-        `SELECT category, COUNT(*) as total FROM requests WHERE date_submitted BETWEEN $1 AND $2 GROUP BY category`,
-        [startDate, endDate]
-      );
-      return res.json(result.rows);
-    }
-
-    // Example: Project Completion
-    if (type === 'project_completion') {
-      const result = await pool.query(
-        `SELECT name, (completed_tasks::float / total_tasks) * 100 as completion_rate FROM projects`
-      );
-      return res.json(result.rows);
-    }
-
-    res.status(400).json({ message: 'Invalid report type' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to generate report' });
+    const result = await pool.query(`
+      SELECT r.id, r.subject, r.priority, u.full_name AS citizen_name, r.created_at
+      FROM requests r
+      LEFT JOIN users u ON r.citizen_id = u.id
+      ORDER BY r.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch reports" });
   }
 };
-
-module.exports = { generateReport };

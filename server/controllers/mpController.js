@@ -1,37 +1,29 @@
 const pool = require('../config/db');
 
-const getAllMPs = async (req, res) => {
+exports.getMPs = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM mps ORDER BY id ASC');
+    const result = await pool.query("SELECT id, full_name, party, constituency, region, profile_photo FROM users WHERE role='mp'");
     res.json(result.rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to fetch MPs' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch MPs" });
   }
 };
 
-const getMPById = async (req, res) => {
-  const { id } = req.params;
+exports.createMP = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM mps WHERE id=$1', [id]);
-    res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch MP' });
-  }
-};
+    const { full_name, email, phone, party, constituency, region, profile_photo } = req.body;
 
-const updateMP = async (req, res) => {
-  const { id } = req.params;
-  const { name, email, photo } = req.body;
-  try {
     const result = await pool.query(
-      'UPDATE mps SET name=$1, email=$2, photo=$3 WHERE id=$4 RETURNING *',
-      [name, email, photo, id]
+      `INSERT INTO users (full_name, email, phone, role, party, constituency, region, profile_photo)
+       VALUES ($1,$2,$3,'mp',$4,$5,$6,$7)
+       RETURNING id, full_name, email, phone, party, constituency, region, profile_photo`,
+      [full_name, email, phone, party, constituency, region, profile_photo || null]
     );
-    res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to update MP' });
+
+    res.status(201).json({ message: "MP added successfully", mp: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to create MP" });
   }
 };
-
-module.exports = { getAllMPs, getMPById, updateMP };

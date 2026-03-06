@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getAllMPs, getMPById, updateMP } = require('../controllers/mpController');
-const authenticateToken = require('../middleware/authMiddleware');
+const { getMPs, createMP } = require('../controllers/mpController');
+const authMiddleware = require('../middlewares/authMiddleware');
 
-router.get('/', authenticateToken, getAllMPs);
-router.get('/:id', authenticateToken, getMPById);
-router.put('/:id', authenticateToken, updateMP);
+// Public: list MPs
+router.get('/', getMPs);
+
+// Protected: create new MP
+router.post('/', authMiddleware, createMP);
 
 module.exports = router;

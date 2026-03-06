@@ -7,17 +7,12 @@ const pool = new Pool({
   database: process.env.DB_NAME,
   password: process.env.DB_PASS,
   port: process.env.DB_PORT,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl: { rejectUnauthorized: false },
 });
 
-pool.on('connect', () => {
-  console.log('✅ Connected to PostgreSQL database');
-});
-
+pool.on('connect', () => console.log('✅ Connected to PostgreSQL'));
 pool.on('error', (err) => {
-  console.error('❌ Unexpected error on idle client', err);
+  console.error('❌ DB Error', err);
   process.exit(-1);
 });
 
