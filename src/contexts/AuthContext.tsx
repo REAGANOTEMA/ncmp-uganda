@@ -21,19 +21,9 @@ Context Type
 */
 interface AuthContextType {
   user: User | null;
-  login: (
-    identifier: string,
-    password: string,
-    role: "official" | "citizen"
-  ) => Promise<void>;
-  register: (data: {
-    full_name: string;
-    email?: string;
-    nin?: string;
-    password: string;
-    role: "official" | "citizen";
-  }) => Promise<void>;
+  login: (identifier: string, password: string, role: "official" | "citizen") => Promise<void>;
   logout: () => void;
+  register: (data: { full_name: string; email?: string; password: string; role: string; nin?: string }) => Promise<void>;
 }
 
 /*
@@ -73,21 +63,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   LOGIN
   ================================
   */
-  const login = async (
-    identifier: string,
-    password: string,
-    role: "official" | "citizen"
-  ) => {
+  const login = async (identifier: string, password: string, role: "official" | "citizen") => {
     try {
       const payload: any = { password };
-
-      if (role === "citizen") {
-        payload.identifier = identifier; // NIN used as identifier in backend
-      } else {
-        payload.identifier = identifier; // email used as identifier
-      }
+      if (role === "citizen") payload.nin = identifier;
+      else payload.email = identifier;
 
       const res = await API.post("/auth/login", payload);
+
       const { token, user } = res.data;
 
       localStorage.setItem("token", token);
@@ -95,9 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(user);
     } catch (error: any) {
       console.error("Login failed:", error);
-      throw new Error(
-        error?.response?.data?.message || "Login failed. Please try again."
-      );
+      throw new Error(error?.response?.data?.message || "Login failed. Please try again.");
     }
   };
 
@@ -106,25 +87,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   REGISTER
   ================================
   */
-  const register = async (data: {
-    full_name: string;
-    email?: string;
-    nin?: string;
-    password: string;
-    role: "official" | "citizen";
-  }) => {
+  const register = async (data: { full_name: string; email?: string; password: string; role: string; nin?: string }) => {
     try {
       const res = await API.post("/auth/register", data);
-      const { token, user } = res.data;
+
+      const newUser = res.data.user;
+      const token = `demo-token-${Date.now()}`; // temporary token for demo
 
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
+      localStorage.setItem("user", JSON.stringify(newUser));
+      setUser(newUser);
     } catch (error: any) {
       console.error("Registration failed:", error);
-      throw new Error(
-        error?.response?.data?.message || "Registration failed. Please try again."
-      );
+      throw new Error(error?.response?.data?.message || "Registration failed. Please try again.");
     }
   };
 
@@ -139,13 +114,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
-  /*
-  ================================
-  CONTEXT PROVIDER
-  ================================
-  */
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );

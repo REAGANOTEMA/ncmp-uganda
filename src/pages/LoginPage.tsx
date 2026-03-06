@@ -13,7 +13,7 @@ const DEMO_CREDS = [
 ];
 
 export default function AuthFlow() {
-  const { login } = useAuth();
+  const { login, register } = useAuth();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -36,31 +36,27 @@ export default function AuthFlow() {
       if (mode === "login") {
         await login(identifier, password, role);
       } else {
-        // Registration payload
-        if (role === "citizen" && !NIN_REGEX.test(identifier)) {
+        // Registration: validate NIN for citizens
+        if (role === "citizen" && !NIN_REGEX.test(identifier.toUpperCase())) {
           setError("Invalid NIN format. Example: CM9801910356YD");
           setLoading(false);
           return;
         }
 
-        const payload: any = { full_name: fullName, password, role };
-        if (role === "citizen") payload.nin = identifier;
-        else payload.email = identifier;
-
-        const res = await fetch(`${import.meta.env.VITE_API_BASE}/auth/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+        await register({
+          full_name: fullName,
+          email: role === "official" ? identifier : undefined,
+          nin: role === "citizen" ? identifier.toUpperCase() : undefined,
+          password,
+          role,
         });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Registration failed.");
 
         // Auto-login after registration
         await login(identifier, password, role);
       }
 
       // Role-based redirects
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
       const roleRedirects: Record<string, string> = {
         super_admin: "/dashboard",
         speaker: "/dashboard",
@@ -70,10 +66,9 @@ export default function AuthFlow() {
         citizen: "/dashboard",
       };
 
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      navigate(roleRedirects[user.role] || "/dashboard");
+      navigate(roleRedirects[user.role?.toLowerCase()] || "/dashboard");
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Authentication failed");
     } finally {
       setLoading(false);
     }
@@ -83,8 +78,17 @@ export default function AuthFlow() {
     setError("");
     setLoading(true);
     try {
-      await login(demoEmail, "demo1234");
-      navigate("/dashboard");
+      await login(demoEmail, "demo1234", "official");
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const roleRedirects: Record<string, string> = {
+        super_admin: "/dashboard",
+        speaker: "/dashboard",
+        mp: "/dashboard",
+        staff: "/dashboard",
+        data_entry: "/dashboard",
+        citizen: "/dashboard",
+      };
+      navigate(roleRedirects[user.role?.toLowerCase()] || "/dashboard");
     } catch {
       setError("Demo login failed.");
     } finally {
@@ -121,9 +125,7 @@ export default function AuthFlow() {
             {mode === "login" ? "Sign in to NCMP" : "Register Your Account"}
           </h2>
           <p className="text-muted-foreground text-sm mb-8">
-            {mode === "login"
-              ? "Enter your credentials to access your workspace."
-              : "Create a new account to access your workspace."}
+            {mode === "login" ? "Enter your credentials to access your workspace." : "Create a new account to access your workspace."}
           </p>
 
           {error && (
@@ -206,12 +208,9 @@ export default function AuthFlow() {
             className="text-center text-xs text-muted-foreground mt-6 cursor-pointer hover:underline"
             onClick={() => setMode(mode === "login" ? "register" : "login")}
           >
-            {mode === "login"
-              ? "Don't have an account? Register here"
-              : "Already have an account? Sign In"}
+            {mode === "login" ? "Don't have an account? Register here" : "Already have an account? Sign In"}
           </p>
 
-          {/* Demo login */}
           {mode === "login" && (
             <div className="mt-8 grid grid-cols-2 gap-2">
               {DEMO_CREDS.map(d => (

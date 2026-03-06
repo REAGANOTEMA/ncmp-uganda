@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+
+// Import routes
 const authRoutes = require('./routes/authRoutes');
 const mpRoutes = require('./routes/mpRoutes');
 const staffRoutes = require('./routes/staffRoutes');
@@ -14,15 +16,12 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(morgan('dev')); // logs HTTP requests for debugging
+app.use(express.json()); // parse JSON body
+app.use(morgan('dev')); // logging for requests
 
-// Health Check
+// Health check
 app.get('/', (req, res) => {
-  res.status(200).json({
-    message: 'NCMP API is running ✅',
-    environment: process.env.NODE_ENV || 'development',
-  });
+  res.status(200).json({ message: 'API is running ✅', environment: process.env.NODE_ENV || 'development' });
 });
 
 // Routes
@@ -34,21 +33,18 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/beneficiaries', beneficiaryRoutes);
 app.use('/api/reports', reportRoutes);
 
-// 404 Handler
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found ❌' });
 });
 
-// Global Error Handler
+// Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({
-    error: 'Something went wrong ❌',
-    details: err.message,
-  });
+  res.status(500).json({ error: 'Something went wrong ❌', details: err.message });
 });
 
-// Start Server
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT} | ENV: ${process.env.NODE_ENV || 'development'}`);

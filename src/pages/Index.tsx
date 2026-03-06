@@ -18,7 +18,7 @@ export default function Index() {
   };
 
   // Normalize role to lowercase and redirect
-  const redirectPath = roleRedirects[user.role.toLowerCase()] || "/dashboard";
+  const redirectPath = roleRedirects[user.role?.toLowerCase()] || "/dashboard";
 
   return <Navigate to={redirectPath} replace />;
 }
