@@ -2,70 +2,76 @@ const pool = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "super_secret_key";
-
 /*
-============================
+================================
 REGISTER
-============================
+================================
 */
 exports.register = async (req, res) => {
   try {
     const { full_name, email, nin, password, role } = req.body;
 
-    if (!full_name || !password) {
-      return res.status(400).json({ message: "Full name and password required." });
+    if (!full_name || !password || !role) {
+      return res.status(400).json({
+        message: "Full name, password and role are required",
+      });
     }
 
     if (!email && !nin) {
-      return res.status(400).json({ message: "Email or NIN required." });
+      return res.status(400).json({
+        message: "Email or NIN is required",
+      });
     }
 
     // check existing user
-    const existing = await pool.query(
+    const existingUser = await pool.query(
       "SELECT * FROM users WHERE email=$1 OR nin=$2",
       [email || null, nin || null]
     );
 
-    if (existing.rows.length > 0) {
-      return res.status(400).json({ message: "User already exists." });
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({
+        message: "User already exists",
+      });
     }
 
-    // hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await pool.query(
-      `INSERT INTO users (full_name,email,nin,password,role)
+      `INSERT INTO users (full_name, email, nin, password, role)
        VALUES ($1,$2,$3,$4,$5)
-       RETURNING id,full_name,email,nin,role`,
-      [
-        full_name,
-        email || null,
-        nin || null,
-        hashedPassword,
-        role || "citizen",
-      ]
+       RETURNING id, full_name, email, nin, role`,
+      [full_name, email || null, nin || null, hashedPassword, role]
     );
 
     res.status(201).json({
       message: "Registration successful",
       user: newUser.rows[0],
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error during registration." });
+
+  } catch (error) {
+    console.error("REGISTER ERROR:", error);
+    res.status(500).json({
+      message: "Registration failed",
+      error: error.message,
+    });
   }
 };
 
 /*
-============================
+================================
 LOGIN
-============================
+================================
 */
 exports.login = async (req, res) => {
   try {
     const { email, nin, password } = req.body;
+
+    if ((!email && !nin) || !password) {
+      return res.status(400).json({
+        message: "Email/NIN and password required",
+      });
+    }
 
     const userQuery = await pool.query(
       "SELECT * FROM users WHERE email=$1 OR nin=$2",
@@ -73,24 +79,32 @@ exports.login = async (req, res) => {
     );
 
     if (userQuery.rows.length === 0) {
-      return res.status(400).json({ message: "User not found." });
+      return res.status(400).json({
+        message: "User not found",
+      });
     }
 
     const user = userQuery.rows[0];
 
-    const validPass = await bcrypt.compare(password, user.password);
+    const validPassword = await bcrypt.compare(password, user.password);
 
-    if (!validPass) {
-      return res.status(400).json({ message: "Invalid password." });
+    if (!validPassword) {
+      return res.status(401).json({
+        message: "Invalid credentials",
+      });
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role },
-      JWT_SECRET,
-      { expiresIn: "7d" }
+      {
+        id: user.id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET || "secret123",
+      { expiresIn: "1d" }
     );
 
     res.json({
+      message: "Login successful",
       token,
       user: {
         id: user.id,
@@ -100,8 +114,12 @@ exports.login = async (req, res) => {
         role: user.role,
       },
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Login failed." });
+
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
+    res.status(500).json({
+      message: "Login failed",
+      error: error.message,
+    });
   }
 };
