@@ -1,208 +1,237 @@
-import { Link } from "react-router-dom";
+// src/pages/AuthFlow.tsx
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import API from "@/services/api";
 import ncmpLogo from "@/assets/ncmp-logo.png";
-import parliamentHero from "@/assets/hero.jpg";
-import mpPlaceholder from "@/assets/mp-placeholder.png";
-import { Shield, Users, FolderKanban, BarChart3, ClipboardList, Heart, Star, ChevronRight } from "lucide-react";
+import parliamentHero from "@/assets/parliament-hero.png";
+import { Eye, EyeOff, AlertCircle, Shield } from "lucide-react";
 
-const FEATURES = [
-  { icon: ClipboardList, title: "Citizen Request Management", desc: "Receive, track, and resolve citizen requests with full case history and priority management." },
-  { icon: FolderKanban, title: "Project Tracking", desc: "Monitor constituency development projects, budgets, milestones, and progress in real-time." },
-  { icon: Heart, title: "Beneficiary Programs", desc: "Manage scholarships, medical assistance, youth & women programs with approval workflows." },
-  { icon: Users, title: "MP Profiles", desc: "Complete professional profiles for every MP including party, term, bio and contact info." },
-  { icon: BarChart3, title: "Reports & Analytics", desc: "Comprehensive performance dashboards, PDF exports and constituency-wide insights." },
-  { icon: Shield, title: "Role-Based Security", desc: "Enterprise-grade access control for Super Admin, MPs, Staff, Citizens and Auditors." },
+const DEMO_CREDS = [
+  { label: "Super Admin / President", email: "admin@ncmp.go.ug", role: "super_admin" },
+  { label: "Member of Parliament", email: "mp@ncmp.go.ug", role: "mp" },
+  { label: "Office Staff", email: "staff@ncmp.go.ug", role: "staff" },
+  { label: "Citizen", email: "citizen@ncmp.go.ug", role: "citizen" },
 ];
 
-export default function LandingPage() {
+export default function AuthFlow() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [fullName, setFullName] = useState("");
+  const [identifier, setIdentifier] = useState(""); // email or NIN
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"official" | "citizen">("citizen");
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Uganda NIN format: e.g., CM9801910356YD
+  const NIN_REGEX = /^[A-Z]{2}\d{10}[A-Z]{2}$/;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      if (mode === "login") {
+        // LOGIN
+        await login(identifier, password, role);
+      } else {
+        // REGISTER
+        if (role === "citizen" && !NIN_REGEX.test(identifier)) {
+          setError("Invalid NIN format. Example: CM9801910356YD");
+          setLoading(false);
+          return;
+        }
+
+        const payload: any = { full_name: fullName, password, role };
+        if (role === "citizen") payload.nin = identifier;
+        else payload.email = identifier;
+
+        // Axios handles JSON automatically
+        const res = await API.post("/auth/register", payload);
+
+        if (!res.data.user) throw new Error(res.data.message || "Registration failed");
+
+        // Auto-login after registration
+        await login(identifier, password, role);
+      }
+
+      // Redirect based on role
+      const roleRedirects: Record<string, string> = {
+        super_admin: "/dashboard",
+        speaker: "/dashboard",
+        mp: "/dashboard",
+        staff: "/dashboard",
+        data_entry: "/dashboard",
+        citizen: "/dashboard",
+      };
+
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      navigate(roleRedirects[user.role] || "/dashboard");
+    } catch (err: any) {
+      console.error(err);
+      setError(err.response?.data?.message || err.message || "Operation failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const quickLogin = async (demoEmail: string) => {
+    setError("");
+    setLoading(true);
+    try {
+      await login(demoEmail, "demo1234");
+      navigate("/dashboard");
+    } catch {
+      setError("Demo login failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-md" style={{ borderColor: "hsl(var(--border))" }}>
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={ncmpLogo} alt="NCMP" className="w-10 h-10 rounded-full object-cover" />
+    <div className="min-h-screen flex">
+      {/* Left Hero */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12" style={{ background: "hsl(var(--primary))" }}>
+        <img src={parliamentHero} alt="Uganda Parliament" className="absolute inset-0 w-full h-full object-cover opacity-20" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-10">
+            <img src={ncmpLogo} alt="NCMP" className="w-14 h-14 rounded-full object-cover border-2 border-secondary/50" />
             <div>
-              <div className="font-bold text-sm text-primary">NCMP Uganda</div>
-              <div className="text-xs text-muted-foreground">National Constituency Management Platform</div>
+              <div className="font-bold text-lg text-secondary">NCMP</div>
+              <div className="text-xs text-primary-foreground/70">Republic of Uganda</div>
             </div>
           </div>
-          <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-            <a href="#constituencies" className="hover:text-foreground transition-colors">Constituencies</a>
-            <a href="#about" className="hover:text-foreground transition-colors">About</a>
-          </div>
-          <Link to="/login" className="px-5 py-2 rounded-lg text-sm font-semibold transition-all bg-primary text-primary-foreground hover:opacity-90">
-            Sign In →
-          </Link>
+          <h1 className="font-display text-4xl font-bold text-primary-foreground leading-tight mb-4">
+            National Constituency<br />Management Platform
+          </h1>
+          <p className="text-primary-foreground/70 text-lg leading-relaxed max-w-md">
+            Empowering Members of Parliament and constituency offices to deliver transparent, efficient, and accountable service to citizens of Uganda.
+          </p>
         </div>
-      </nav>
+      </div>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-primary">
-        <img src={parliamentHero} alt="Uganda Parliament" className="absolute inset-0 w-full h-full object-cover opacity-15" />
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 md:py-32">
-          <div className="max-w-3xl">
-            <div className="flex items-center gap-2 mb-6">
-              <img src={ncmpLogo} alt="NCMP" className="w-12 h-12 rounded-full object-cover border-2 border-secondary/50" />
+      {/* Right Form */}
+      <div className="flex-1 flex flex-col justify-center px-8 py-12 lg:px-16 bg-background">
+        <div className="max-w-md w-full mx-auto">
+          <h2 className="font-display text-3xl font-bold text-foreground mb-2">
+            {mode === "login" ? "Sign in to NCMP" : "Register Your Account"}
+          </h2>
+          <p className="text-muted-foreground text-sm mb-8">
+            {mode === "login"
+              ? "Enter your credentials to access your workspace."
+              : "Create a new account to access your workspace."}
+          </p>
+
+          {error && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm mb-6">
+              <AlertCircle size={16} />
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {mode === "register" && (
               <div>
-                <div className="text-xs font-bold uppercase tracking-widest text-secondary">Republic of Uganda</div>
-                <div className="text-xs text-primary-foreground/60">Official Government Platform</div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Full Name</label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="John Doe"
+                  required
+                  className="w-full h-11 px-4 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+            )}
+
+            {/* Role selector */}
+            <div className="flex items-center gap-4 mb-2">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="radio" checked={role === "official"} onChange={() => setRole("official")} className="accent-primary" />
+                Official / Staff
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="radio" checked={role === "citizen"} onChange={() => setRole("citizen")} className="accent-primary" />
+                Citizen (NIN)
+              </label>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">
+                {role === "citizen" ? "National ID (NIN)" : "Official Email Address"}
+              </label>
+              <input
+                type={role === "citizen" ? "text" : "email"}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder={role === "citizen" ? "e.g. CM9801910356YD" : "name@parliament.go.ug"}
+                required
+                className="w-full h-11 px-4 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Password</label>
+              <div className="relative">
+                <input
+                  type={showPass ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full h-11 px-4 pr-11 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
             </div>
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground leading-tight mb-6">
-              National Constituency<br />
-              <span className="text-secondary">Management Platform</span>
-            </h1>
-            <p className="text-primary-foreground/70 text-xl leading-relaxed mb-10 max-w-2xl">
-              Empowering Uganda's 529 Members of Parliament to deliver transparent, accountable, and efficient service to 46 million citizens across 290+ constituencies in 2026.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link to="/login" className="px-8 py-3.5 rounded-xl font-semibold text-sm transition-all hover:opacity-90 bg-secondary text-secondary-foreground">
-                Access Platform →
-              </Link>
-              <a href="#features" className="px-8 py-3.5 rounded-xl font-semibold text-sm border transition-all border-primary-foreground/30 text-primary-foreground hover:opacity-90">
-                Learn More
-              </a>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 rounded-lg font-semibold text-sm transition-all duration-200 disabled:opacity-60"
+              style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}
+            >
+              {loading ? (mode === "login" ? "Authenticating..." : "Registering...") : (mode === "login" ? "Sign In Securely" : "Create Account")}
+            </button>
+          </form>
+
+          <p
+            className="text-center text-xs text-muted-foreground mt-6 cursor-pointer hover:underline"
+            onClick={() => setMode(mode === "login" ? "register" : "login")}
+          >
+            {mode === "login"
+              ? "Don't have an account? Register here"
+              : "Already have an account? Sign In"}
+          </p>
+
+          {/* Demo login */}
+          {mode === "login" && (
+            <div className="mt-8 grid grid-cols-2 gap-2">
+              {DEMO_CREDS.map((d) => (
+                <button
+                  key={d.email}
+                  onClick={() => quickLogin(d.email)}
+                  className="text-left px-3 py-2.5 rounded-lg border text-xs transition-all hover:border-primary/40 hover:bg-muted"
+                >
+                  <div className="font-semibold text-foreground">{d.label}</div>
+                  <div className="text-muted-foreground mt-0.5">{d.email}</div>
+                </button>
+              ))}
             </div>
-          </div>
+          )}
         </div>
-
-        {/* Stats */}
-        <div className="relative z-10 border-t bg-primary-light" style={{ borderColor: "hsl(var(--primary-light))" }}>
-          <div className="max-w-7xl mx-auto px-6 py-5 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {[
-              { label: "Constituencies", value: "290+" },
-              { label: "Active MPs", value: "529" },
-              { label: "Citizens Served", value: "46M+" },
-              { label: "Districts", value: "146" },
-            ].map(s => (
-              <div key={s.label}>
-                <div className="text-2xl font-bold font-display text-secondary">{s.value}</div>
-                <div className="text-xs text-primary-foreground/60 mt-1">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="py-20 max-w-7xl mx-auto px-6">
-        <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-4 bg-primary/10 text-primary">
-            <Star size={12} /> Enterprise Government Platform
-          </div>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">Complete Constituency Management</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">Everything an MP and their office needs to serve constituents efficiently and transparently in 2026.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {FEATURES.map(f => (
-            <div key={f.title} className="gov-card p-6 group hover:shadow-lg transition-shadow duration-300">
-              <div className="p-3 rounded-xl w-fit mb-4 bg-primary/10 transition-colors">
-                <f.icon size={22} className="text-primary" />
-              </div>
-              <h3 className="font-semibold text-foreground text-lg mb-2">{f.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* MP Profiles */}
-      <section id="constituencies" className="py-20 bg-muted">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-14">
-            <h2 className="font-display text-3xl font-bold text-foreground mb-4">Professional MP Profiles</h2>
-            <p className="text-muted-foreground">Complete profiles for every Member of Parliament in Uganda in 2026</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { name: "Hon. Muhammad Nsereko", constituency: "Kampala Central", party: "NRM", region: "Central" },
-              { name: "Hon. Betty Nambooze", constituency: "Mukono Municipal", party: "NUP", region: "Central" },
-              { name: "Hon. Norbert Mao", constituency: "Omoro", party: "DP", region: "Northern" },
-            ].map(mp => (
-              <div key={mp.name} className="gov-card overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                <div className="h-20 bg-primary" />
-                <div className="px-5 pb-5 -mt-8">
-                  <img src={mpPlaceholder} alt={mp.name} className="w-16 h-16 rounded-xl object-cover border-2 mb-3 border-secondary" />
-                  <h3 className="font-semibold text-foreground">{mp.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-0.5">{mp.constituency} Constituency</p>
-                  <div className="flex gap-2 mt-2">
-                    <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">{mp.party}</span>
-                    <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">{mp.region}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section id="about" className="py-20 max-w-7xl mx-auto px-6 text-center">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="font-display text-3xl font-bold text-foreground mb-4">Ready to Transform Constituency Management?</h2>
-          <p className="text-muted-foreground mb-8">Join Uganda's national digital governance platform and deliver better services to your constituents in 2026.</p>
-          <Link to="/login" className="inline-flex items-center gap-2 px-10 py-4 rounded-xl font-semibold text-sm transition-all hover:opacity-90 bg-primary text-primary-foreground">
-            Get Started <ChevronRight size={16} />
-          </Link>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="relative border-t bg-primary text-primary-foreground">
-        {/* Ugandan Flag Line */}
-        <div className="absolute -top-2 left-0 w-full h-2 flex">
-          <div className="flex-1 bg-red-600" />
-          <div className="flex-1 bg-yellow-400" />
-          <div className="flex-1 bg-black" />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 pt-10 grid grid-cols-1 md:grid-cols-3 gap-10">
-          {/* Logo & About */}
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <img src={ncmpLogo} alt="NCMP" className="w-12 h-12 rounded-full object-cover" />
-              <div>
-                <div className="font-bold text-lg text-secondary">NCMP Uganda</div>
-                <div className="text-xs text-primary-foreground/50">National Constituency Management Platform</div>
-              </div>
-            </div>
-            <p className="text-xs text-primary-foreground/60">
-              Empowering Members of Parliament to serve 46M+ citizens transparently and efficiently across 290+ constituencies.
-            </p>
-          </div>
-
-          {/* Quick Links */}
-          <div className="flex flex-col gap-3">
-            <h3 className="font-semibold text-sm text-foreground mb-2">Quick Links</h3>
-            <ul className="flex flex-col gap-1 text-xs text-primary-foreground/60">
-              <li><a href="#features" className="hover:text-secondary transition-colors">Features</a></li>
-              <li><a href="#constituencies" className="hover:text-secondary transition-colors">Constituencies</a></li>
-              <li><a href="#about" className="hover:text-secondary transition-colors">About NCMP</a></li>
-              <li><a href="/reports" className="hover:text-secondary transition-colors">Reports & Analytics</a></li>
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div className="flex flex-col gap-3">
-            <h3 className="font-semibold text-sm text-foreground mb-2">Official & Contact</h3>
-            <ul className="flex flex-col gap-1 text-xs text-primary-foreground/60">
-              <li><a href="https://www.parliament.go.ug" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">Parliament of Uganda</a></li>
-              <li><a href="https://www.gou.go.ug" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">Government of Uganda</a></li>
-              <li><a href="mailto:reaganotemas@gmail.com" className="hover:text-secondary transition-colors">reaganotemas@gmail.com</a></li>
-              <li><a href="tel:+256772514889" className="hover:text-secondary transition-colors">+256 772 514 889</a></li>
-            </ul>
-          </div>
-
-          {/* Bottom copyright */}
-          <div className="col-span-full mt-10 border-t pt-4 border-primary-light/30 text-center text-xs text-primary-foreground/50">
-            <p>© 2026 Republic of Uganda. All rights reserved.</p>
-            <p className="mt-1 text-xs">
-              Designed & Built by <strong className="text-secondary"><a href="mailto:reaganotemas@gmail.com" className="hover:underline">Reagan Otema</a></strong> — Enterprise Government Solutions
-            </p>
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 }
