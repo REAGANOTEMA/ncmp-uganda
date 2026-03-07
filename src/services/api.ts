@@ -1,11 +1,11 @@
-// src/services/api.ts
 import axios, { AxiosRequestConfig } from "axios";
 
+// ✅ Live Backend URL
 const API = axios.create({
-  baseURL: "https://ncmp-uganda.onrender.com/api", // your backend URL
+  baseURL: "https://ncmp-backend.onrender.com/api", // your live backend API
 });
 
-// Add JWT token to every request if available
+// Attach JWT to every request
 API.interceptors.request.use((config: AxiosRequestConfig) => {
   const token = localStorage.getItem("token");
   if (token && config.headers) {
@@ -15,7 +15,7 @@ API.interceptors.request.use((config: AxiosRequestConfig) => {
 });
 
 // ===============================
-// TypeScript Types
+// Types
 // ===============================
 export interface IUserRegister {
   full_name: string;
@@ -50,7 +50,7 @@ export interface ITokenResponse {
 // Auth API
 // ===============================
 export const registerUser = (data: IUserRegister) =>
-  API.post<IUserResponse>("/auth/register", data);
+  API.post<ITokenResponse>("/auth/register", data);
 
 export const loginUser = (data: IUserLogin) =>
   API.post<ITokenResponse>("/auth/login", data);
@@ -79,7 +79,4 @@ export const createProject = (data: any) => API.post("/projects", data);
 export const getRequests = () => API.get("/requests");
 export const createRequest = (data: any) => API.post("/requests", data);
 
-// ===============================
-// Default export
-// ===============================
 export default API;

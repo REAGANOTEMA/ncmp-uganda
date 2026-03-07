@@ -1,11 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import API from "@/services/api";
+import API, { IUserLogin, IUserRegister, IUserResponse, ITokenResponse } from "@/services/api";
 
-/*
-================================
-User Type
-================================
-*/
 interface User {
   id: string;
   full_name: string;
@@ -14,30 +9,15 @@ interface User {
   role: string;
 }
 
-/*
-================================
-Context Type
-================================
-*/
 interface AuthContextType {
   user: User | null;
   login: (identifier: string, password: string, role: "official" | "citizen") => Promise<void>;
   logout: () => void;
-  register: (data: { full_name: string; email?: string; password: string; role: string; nin?: string }) => Promise<void>;
+  register: (data: IUserRegister) => Promise<void>;
 }
 
-/*
-================================
-Create Context
-================================
-*/
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/*
-================================
-Safe LocalStorage Reader
-================================
-*/
 const getStoredUser = (): User | null => {
   try {
     const storedUser = localStorage.getItem("user");
@@ -50,26 +30,16 @@ const getStoredUser = (): User | null => {
   }
 };
 
-/*
-================================
-Auth Provider
-================================
-*/
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(getStoredUser());
 
-  /*
-  ================================
-  LOGIN
-  ================================
-  */
   const login = async (identifier: string, password: string, role: "official" | "citizen") => {
     try {
       const payload: any = { password };
       if (role === "citizen") payload.nin = identifier;
       else payload.email = identifier;
 
-      const res = await API.post("/auth/login", payload);
+      const res = await API.post<ITokenResponse>("/auth/login", payload);
 
       const { token, user } = res.data;
 
@@ -82,17 +52,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  /*
-  ================================
-  REGISTER
-  ================================
-  */
-  const register = async (data: { full_name: string; email?: string; password: string; role: string; nin?: string }) => {
+  const register = async (data: IUserRegister) => {
     try {
-      const res = await API.post("/auth/register", data);
+      const res = await API.post<ITokenResponse>("/auth/register", data);
 
-      const newUser = res.data.user;
-      const token = `demo-token-${Date.now()}`; // temporary token for demo
+      const { token, user: newUser } = res.data;
 
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(newUser));
@@ -103,11 +67,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  /*
-  ================================
-  LOGOUT
-  ================================
-  */
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -121,11 +80,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-/*
-================================
-Custom Hook
-================================
-*/
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within AuthProvider");
